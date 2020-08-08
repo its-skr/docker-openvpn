@@ -22,7 +22,7 @@ RUN apk add --no-cache openvpn easy-rsa bash netcat-openbsd zip dumb-init && \
     cp pki/dh.pem /etc/openvpn && \
     # Copy FROM ./scripts/server/conf TO /etc/openvpn/server.conf in DockerFile
     cd ${APP_INSTALL_PATH} && \
-    cp config/server.conf /etc/openvpn/server.conf
+    cp config/server.conf /etc/openvpn/server.conf && \
     cp -r config/ccd /etc/openvpn
 
 
