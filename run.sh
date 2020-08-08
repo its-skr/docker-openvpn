@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-build -t skr2/openvpn-server-26 .
+docker build -t skr2/openvpn-server-26 .
 
 docker run --name openvpn-26 --cap-add=NET_ADMIN \
 -d \
