@@ -26,7 +26,6 @@ skr2/openvpn-server-26 \
 create_clients.sh
 
 docker run --name openvpn-26 --cap-add=NET_ADMIN \
--d \
 -p 1195:1194/udp -p 80:8080/tcp \
 -v openvpn-26:/opt/Dockovpn_data \
 --rm \
