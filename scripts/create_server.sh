@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Copy FROM ./scripts/server/conf TO /etc/openvpn/server.conf in DockerFile
+# Copy FROM ./scripts/server/conf TO $APP_PERSIST_DIR/server/server.conf in DockerFile
 cd ${APP_INSTALL_PATH} && \
-cp config/server.conf /etc/openvpn/server.conf && \
-cp config/ipp.txt /etc/openvpn/ipp.txt
+cp config/server.conf $APP_PERSIST_DIR/openvpn/server.conf && \
+cp config/ipp.txt $APP_PERSIST_DIR/openvpn/ipp.txt
 
 cd ${APP_PERSIST_DIR}
-cp pki/dh.pem /etc/openvpn
+cp pki/dh.pem $APP_PERSIST_DIR/openvpn
 
 
 /usr/share/easy-rsa/easyrsa build-ca nopass << EOF
