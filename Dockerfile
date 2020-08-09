@@ -13,10 +13,9 @@ COPY config ./config
 COPY VERSION ./config
 
 RUN apk add --no-cache openvpn easy-rsa bash netcat-openbsd zip dumb-init && \
-    mkdir -p ${APP_PERSIST_DIR} && \
-    cd ${APP_PERSIST_DIR}
+    mkdir -p ${APP_PERSIST_DIR}
 
-RUN sh ./scripts/build.sh
+RUN ./build.sh
 
 EXPOSE 1194/udp
 
