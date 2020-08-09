@@ -2,7 +2,7 @@
 
 #docker stop openvpn-26
 
-#docker build -t skr2/openvpn-server-26 .
+docker build -t skr2/openvpn-server-26 .
 
 docker run --entrypoint /bin/bash \
 -v openvpn-26:/opt/Dockovpn_data \
