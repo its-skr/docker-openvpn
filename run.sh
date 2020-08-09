@@ -19,6 +19,8 @@ create_server.sh
 docker run --entrypoint /bin/bash \
 -v openvpn-26:/opt/Dockovpn_data \
 -e HOST_ADDR=$(curl -s https://api.ipify.org) \
+-e PORT=1195 \
+-e REGION=26
 --rm \
 skr2/openvpn-server-26 \
 create_clients.sh

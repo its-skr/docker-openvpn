@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Head
-CLIENT_ID=client-26-db ./genclient.sh
+CLIENT_ID=client-$REGION-db ./genclient.sh
 
 # Departments
 CLIENT_ID=client-26-03 ./genclient.sh
