@@ -72,6 +72,6 @@ openvpn --config /etc/openvpn/server.conf &
 echo " "
 
 # Generate client config
-./genclient.sh $@
+#./genclient.sh $@
 
 tail -f /dev/null

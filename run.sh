@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 
-docker stop openvpn-26
+#docker stop openvpn-26
 
-docker build -t skr2/openvpn-server-26 .
+#docker build -t skr2/openvpn-server-26 .
 
 docker run --name openvpn-26 --cap-add=NET_ADMIN \
 -d \
 -p 1195:1194/udp -p 80:8080/tcp \
--e CLIENT_ID=client-26-db \
 -e HOST_ADDR=$(curl -s https://api.ipify.org) \
 -v openvpn-26:/opt/Dockovpn_data \
 --rm \
 skr2/openvpn-server-26
+
+#docker exec openvpn-26 ./create_clients.sh
+docker run --rm -v openvpn-26:/opt/Dockovpn_data skr2/openvpn-server-26 ./create_clients.sh
 
 docker logs openvpn-26 -f
 
