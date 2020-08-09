@@ -28,9 +28,9 @@ function createConfig() {
     fi
 
     cd "$APP_INSTALL_PATH"
-    cp config/client.ovpn $CLIENT_PATH
+    cp config/$CLIENT_ID.ovpn $CLIENT_PATH
 
-    echo -e "\nremote $HOST_ADDR 1195" >> "$CLIENT_PATH/client.ovpn"
+    echo -e "\nremote $HOST_ADDR 1195" >> "$CLIENT_PATH/$CLIENT_ID.ovpn"
 
     # Embed client authentication files into config file
     cat <(echo -e '<ca>') \
@@ -38,7 +38,7 @@ function createConfig() {
         "$CLIENT_PATH/$CLIENT_ID.crt" <(echo -e '</cert>\n<key>') \
         "$CLIENT_PATH/$CLIENT_ID.key" <(echo -e '</key>\n<tls-auth>') \
         "$CLIENT_PATH/ta.key" <(echo -e '</tls-auth>') \
-        >> "$CLIENT_PATH/client.ovpn"
+        >> "$CLIENT_PATH/$CLIENT_ID.ovpn"
 
     echo $CLIENT_PATH
 }
@@ -49,10 +49,10 @@ function zipFiles() {
 
     # -q to silence zip output
     # -j junk directories
-    zip -q -j "$CLIENT_PATH/client.zip" "$CLIENT_PATH/client.ovpn"
+    zip -q -j "$CLIENT_PATH/$CLIENT_ID.zip" "$CLIENT_PATH/$CLIENT_ID.ovpn"
     if [ "$IS_QUITE" != "-q" ]
     then
-       echo "$(datef) $CLIENT_PATH/client.zip file has been generated"
+       echo "$(datef) $CLIENT_PATH/$CLIENT_ID.zip file has been generated"
     fi
 }
 
@@ -63,10 +63,10 @@ function zipFilesWithPassword() {
     # -q to silence zip output
     # -j junk directories
     # -P pswd use standard encryption, password is pswd
-    zip -q -j -P "$ZIP_PASSWORD" "$CLIENT_PATH/client.zip" "$CLIENT_PATH/client.ovpn"
+    zip -q -j -P "$ZIP_PASSWORD" "$CLIENT_PATH/$CLIENT_ID.zip" "$CLIENT_PATH/$CLIENT_ID.ovpn"
 
     if [ "$IS_QUITE" != "-q" ]
     then
-       echo "$(datef) $CLIENT_PATH/client.zip with password protection has been generated"
+       echo "$(datef) $CLIENT_PATH/$CLIENT_ID.zip with password protection has been generated"
     fi
 }
