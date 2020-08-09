@@ -39,4 +39,4 @@ echo " "
 # Generate client config
 #./genclient.sh $@
 
-#tail -f /dev/null
+tail -f /dev/null
