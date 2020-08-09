@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Head
 CLIENT_ID=client-26-db ./genclient.sh
 

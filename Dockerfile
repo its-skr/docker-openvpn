@@ -24,7 +24,6 @@ RUN apk add --no-cache openvpn easy-rsa bash netcat-openbsd zip dumb-init && \
     cd ${APP_INSTALL_PATH} && \
     cp config/server.conf /etc/openvpn/server.conf && \
     cp config/ipp.txt /etc/openvpn/ipp.txt
-#    cp -r config/ccd /etc/openvpn
 
 
 EXPOSE 1194/udp

@@ -13,7 +13,7 @@ docker run --name openvpn-26 --cap-add=NET_ADMIN \
 skr2/openvpn-server-26
 
 #docker exec openvpn-26 ./create_clients.sh
-docker run --rm -v openvpn-26:/opt/Dockovpn_data skr2/openvpn-server-26 ./create_clients.sh
+docker exec openvpn-26 ./create_clients.sh
 
 docker logs openvpn-26 -f
 

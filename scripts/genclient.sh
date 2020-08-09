@@ -4,7 +4,7 @@ source ./functions.sh
 
 CLIENT_PATH="$(createConfig)"
 CONTENT_TYPE=application/text
-FILE_NAME=client.ovpn
+FILE_NAME=$(CLIENT_ID).ovpn
 FILE_PATH="$CLIENT_PATH/$FILE_NAME"
 
 echo "$(datef) $FILE_PATH file has been generated"
