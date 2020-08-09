@@ -34,5 +34,5 @@ yes
 EOF4
 
 # Copy server keys and certificates
-cp pki/ca.crt pki/issued/MyReq.crt pki/private/MyReq.key ta.key /etc/openvpn
-
+mkdir $APP_PERSIST_DIR/server
+cp pki/ca.crt pki/issued/MyReq.crt pki/private/MyReq.key ta.key $APP_PERSIST_DIR/server

@@ -25,6 +25,9 @@ iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -t nat -A POSTROUTING -s 10.8.26.0/24 -o eth0 -j MASQUERADE
 
 
+cd $APP_PERSIST_DIR/server
+cp ca.crt MyReq.crt MyReq.key ta.key /etc/openvpn
+
 cd "$APP_INSTALL_PATH"
 
 # Print app version

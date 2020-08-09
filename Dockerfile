@@ -1,7 +1,5 @@
 FROM alpine:3.11.3
 
-LABEL maintainer="Alexander Litvinenko <array.shift@yahoo.com>"
-
 ENV APP_NAME Dockovpn
 ENV APP_INSTALL_PATH /opt/${APP_NAME}
 ENV APP_PERSIST_DIR /opt/${APP_NAME}_data
