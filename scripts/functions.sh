@@ -31,7 +31,7 @@ function createConfig() {
     fi
 
     cd "$APP_INSTALL_PATH"
-    cp config/$CLIENT_ID.ovpn $CLIENT_PATH
+    cp config/client.ovpn $CLIENT_PATH
 
     echo -e "\nremote $HOST_ADDR 1195" >> "$CLIENT_PATH/$CLIENT_ID.ovpn"
 
