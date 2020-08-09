@@ -26,7 +26,7 @@ iptables -t nat -A POSTROUTING -s 10.8.26.0/24 -o eth0 -j MASQUERADE
 
 
 cd $APP_PERSIST_DIR/server
-cp ca.crt MyReq.crt MyReq.key ta.key /etc/openvpn
+cp ca.crt MyReq.crt MyReq.key ta.key $APP_PERSIST_DIR/openvpn
 
 cd "$APP_INSTALL_PATH"
 
