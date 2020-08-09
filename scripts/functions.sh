@@ -19,7 +19,10 @@ function createConfig() {
 
     mkdir -p $CLIENT_PATH
 
-    cp "pki/private/$CLIENT_ID.key" "pki/issued/$CLIENT_ID.crt" pki/ca.crt /etc/openvpn/ta.key $CLIENT_PATH
+    cd "$APP_PERSIST_DIR"
+    echo "current dir is: "
+    pwd
+    cp "pki/private/$CLIENT_ID.key" "pki/issued/$CLIENT_ID.crt" pki/ca.crt ta.key $CLIENT_PATH
 
     # Set default value to HOST_ADDR if it was not set from environment
     if [ -z "$HOST_ADDR" ]

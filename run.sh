@@ -6,13 +6,20 @@
 
 docker run --entrypoint /bin/bash \
 -v openvpn-26:/opt/Dockovpn_data \
+--rm \
 skr2/openvpn-server-26 \
 create_server.sh
+
+docker run --entrypoint /bin/bash \
+-v openvpn-26:/opt/Dockovpn_data \
+-e HOST_ADDR=$(curl -s https://api.ipify.org) \
+--rm \
+skr2/openvpn-server-26 \
+create_clients.sh
 
 docker run --name openvpn-26 --cap-add=NET_ADMIN \
 -d \
 -p 1195:1194/udp -p 80:8080/tcp \
--e HOST_ADDR=$(curl -s https://api.ipify.org) \
 -v openvpn-26:/opt/Dockovpn_data \
 --rm \
 skr2/openvpn-server-26

@@ -1,5 +1,8 @@
 FROM alpine:3.11.3
 
+ENV TZ=Europe/Kiev
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 ENV APP_NAME Dockovpn
 ENV APP_INSTALL_PATH /opt/${APP_NAME}
 ENV APP_PERSIST_DIR /opt/${APP_NAME}_data
