@@ -10,8 +10,6 @@ cd ${APP_INSTALL_PATH} && \
 cp config/server.conf /etc/openvpn/server.conf && \
 cp config/ipp.txt /etc/openvpn/ipp.txt
 
-cd "$APP_PERSIST_DIR"
-
 /usr/share/easy-rsa/easyrsa build-ca nopass << EOF
 
 EOF
