@@ -8,9 +8,6 @@ cp config/ipp.txt $APP_PERSIST_DIR/openvpn/ipp.txt
 
 cd ${APP_PERSIST_DIR}
 cp pki/dh.pem $APP_PERSIST_DIR/openvpn
-cp server/ca.crt $APP_PERSIST_DIR/openvpn
-cp server/MyReq.crt $APP_PERSIST_DIR/openvpn
-cp server/MyReq.key $APP_PERSIST_DIR/openvpn
 
 
 /usr/share/easy-rsa/easyrsa build-ca nopass << EOF
@@ -39,3 +36,4 @@ EOF4
 # Copy server keys and certificates
 mkdir $APP_PERSIST_DIR/server
 cp pki/ca.crt pki/issued/MyReq.crt pki/private/MyReq.key ta.key $APP_PERSIST_DIR/server
+cp pki/ca.crt pki/issued/MyReq.crt pki/private/MyReq.key $APP_PERSIST_DIR/openvpn
