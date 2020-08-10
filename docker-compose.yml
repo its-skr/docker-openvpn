@@ -30,6 +30,6 @@ services:
 volumes:
   openvpn-26:
     external: true
-  openvpn-731:
+  openvpn-73:
     external: true
 
