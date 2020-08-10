@@ -8,7 +8,6 @@ function datef() {
 
 function createConfig() {
     cd "$APP_PERSIST_DIR"
-#    CLIENT_ID="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
     CLIENT_PATH="$APP_PERSIST_DIR/clients/$CLIENT_ID"
 
     # Redirect stderr to the black hole
@@ -20,8 +19,6 @@ function createConfig() {
     mkdir -p $CLIENT_PATH
 
     cd "$APP_PERSIST_DIR"
-    echo "current dir is: "
-    pwd
     cp "pki/private/$CLIENT_ID.key" "pki/issued/$CLIENT_ID.crt" pki/ca.crt ta.key $CLIENT_PATH
 
     # Set default value to HOST_ADDR if it was not set from environment
