@@ -3,7 +3,8 @@
 # Copy FROM ./scripts/server/conf TO $APP_PERSIST_DIR/openvpn/server.conf in DockerFile
 mkdir $APP_PERSIST_DIR/openvpn
 cd ${APP_INSTALL_PATH} && \
-cp config/server.conf $APP_PERSIST_DIR/openvpn/server.conf && \
+cp cat config/server.conf $APP_PERSIST_DIR/openvpn/server.conf && \
+{ cat config/server.conf; echo "\nserver 10.8.$REGION.0 255.255.255.0"; } > $APP_PERSIST_DIR/openvpn/server.conf
 cp config/ipp.txt $APP_PERSIST_DIR/openvpn/ipp.txt
 
 cd ${APP_PERSIST_DIR}
