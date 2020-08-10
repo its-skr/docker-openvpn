@@ -26,8 +26,3 @@ services:
     volumes:
       - /var/lib/docker/volumes/openvpn-73:/opt/Dockovpn_data
     restart: always
-
-volumes:
-  openvpn-26:
-  openvpn-73:
-
