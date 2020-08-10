@@ -5,7 +5,7 @@
 version: '3'
 services:
   vpn-26:
-    image: skr2/openvpn-server
+    image: skr2/skr-openvpn-server
     cap_add:
         - NET_ADMIN
     ports:
@@ -16,7 +16,7 @@ services:
         - ./openvpn_conf:/doc/Dockovpn
     restart: always
   vpn-73:
-    image: skr2/openvpn-server
+    image: skr2/skr-openvpn-server
     cap_add:
       - NET_ADMIN
     ports:

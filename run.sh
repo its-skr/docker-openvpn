@@ -3,18 +3,20 @@
 #docker stop openvpn-26
 export PORT=1195 && export REGION=26
 
-docker build -t skr2/openvpn-server-$REGION .
+docker build -t skr2/skr-openvpn-server .
+
+echo HOST_ADDR=$(curl -s https://api.ipify.org) > .env && docker-compose up
 
 docker run --entrypoint /bin/bash \
 -v openvpn-$REGION:/opt/Dockovpn_data \
 --rm \
-skr2/openvpn-server \
+skr2/skr-openvpn-server \
 init_pki.sh
 
 docker run --entrypoint /bin/bash \
 -v openvpn-$REGION:/opt/Dockovpn_data \
 --rm \
-skr2/openvpn-server \
+skr2/skr-openvpn-server \
 create_server.sh
 
 docker run --entrypoint /bin/bash \
@@ -23,14 +25,14 @@ docker run --entrypoint /bin/bash \
 -e PORT=$PORT \
 -e REGION=$REGION \
 --rm \
-skr2/openvpn-server \
+skr2/skr-openvpn-server \
 create_clients.sh
 
 docker run --name openvpn-$REGION --cap-add=NET_ADMIN \
 -p $PORT:1194/udp -p 80:8080/tcp \
 -v openvpn-$REGION:/opt/Dockovpn_data \
 --rm \
-skr2/openvpn-server
+skr2/skr-openvpn-server
 
 #docker exec openvpn-26 ./genclient.sh z
 
