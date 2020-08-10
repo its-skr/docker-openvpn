@@ -4,6 +4,7 @@
 mkdir $APP_PERSIST_DIR/openvpn
 cd ${APP_INSTALL_PATH}
 cp cat config/server.conf $APP_PERSIST_DIR/openvpn/server.conf
+echo "REGION=$REGION"
 { cat config/server.conf; echo "server 10.8.$REGION.0 255.255.255.0"; } > $APP_PERSIST_DIR/openvpn/server.conf
 cp config/ipp.txt $APP_PERSIST_DIR/openvpn/ipp.txt
 
