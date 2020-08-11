@@ -3,6 +3,7 @@
 #docker stop openvpn-26
 export PORT=1195 && export REGION=26
 export PORT=1196 && export REGION=73
+export PORT=1197 && export REGION=68
 
 docker build -t skr2/skr-openvpn-server .
 
