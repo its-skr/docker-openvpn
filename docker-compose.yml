@@ -38,6 +38,17 @@ services:
     volumes:
       - openvpn-68:/opt/Dockovpn_data
     restart: always
+  vpn-44:
+    image: skr2/skr-openvpn-server
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 1198:1194/udp
+    environment:
+      HOST_ADDR: ${HOST_ADDR}
+    volumes:
+      - openvpn-44:/opt/Dockovpn_data
+    restart: always
 
 volumes:
   openvpn-26:
@@ -45,5 +56,7 @@ volumes:
   openvpn-73:
     external: true
   openvpn-68:
+    external: true
+  openvpn-44:
     external: true
 

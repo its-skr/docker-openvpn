@@ -4,6 +4,7 @@
 export PORT=1195 && export REGION=26
 export PORT=1196 && export REGION=73
 export PORT=1197 && export REGION=68
+export PORT=1198 && export REGION=44
 
 docker build -t skr2/skr-openvpn-server .
 
