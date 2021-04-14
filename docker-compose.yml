@@ -17,7 +17,7 @@ services:
       - openvpn-26:/opt/Dockovpn_data
     restart: always
   vpn-73:
-    image: skr2/skr-openvpn-server
+    image: skr2/skr-openvpn-server:ssh
     cap_add:
       - NET_ADMIN
     ports:

@@ -37,3 +37,5 @@ docker run --name openvpn-$REGION --cap-add=NET_ADMIN \
 --rm \
 skr2/skr-openvpn-server
 
+# Update server.conf (add region number in network mask)
+# Update ipp.txt (replace 26 region with the real one)
