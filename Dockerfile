@@ -19,6 +19,7 @@ RUN apk add tzdata && cp /usr/share/zoneinfo/Europe/Kiev /etc/localtime && echo 
 RUN chmod +x create_server.sh create_clients.sh init_pki.sh
 
 EXPOSE 1194/udp
+EXPOSE 9999
 
 VOLUME [ "/opt/Dockovpn_data" ]
 
