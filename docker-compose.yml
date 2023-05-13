@@ -16,17 +16,33 @@ services:
     volumes:
       - openvpn-26:/opt/Dockovpn_data
     restart: always
+
   vpn-73:
     image: skr2/skr-openvpn-server
     cap_add:
       - NET_ADMIN
     ports:
+      - 3173:3050
       - 1196:1194/udp
     environment:
       HOST_ADDR: ${HOST_ADDR}
     volumes:
       - openvpn-73:/opt/Dockovpn_data
     restart: always
+  gateway-73:
+    image: cloud.canister.io:5000/skr/gateway:main
+    container_name: gateway-73
+    depends_on:
+      - vpn-73
+    environment:
+      TZ: 'EET'
+      ADDR_FROM: 3050
+      ADDR_TO: "10.8.73.2:3050"
+    network_mode: "service:vpn-73"
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
   vpn-68:
     image: skr2/skr-openvpn-server
     cap_add:
