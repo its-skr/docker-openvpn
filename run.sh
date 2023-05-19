@@ -7,7 +7,7 @@ export PORT=1197 && export REGION=68
 export PORT=1198 && export REGION=44
 export PORT=1199 && export REGION=56
 
-docker build -t skr2/skr-openvpn-server .
+docker build --build-arg PASSWORD=<your_password> -t cloud.canister.io:5000/skr/skr-openvpn-server .
 
 echo HOST_ADDR=$(curl -s https://api.ipify.org) > .env && docker-compose up
 
