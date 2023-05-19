@@ -22,8 +22,8 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - 2273:22
-      - 1196:1194/udp
+      - "2273:22"
+      - "1196:1194/udp"
     environment:
       HOST_ADDR: ${HOST_ADDR}
     volumes:

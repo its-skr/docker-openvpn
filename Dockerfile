@@ -23,14 +23,13 @@ RUN apk add tzdata && cp /usr/share/zoneinfo/Europe/Kiev /etc/localtime && echo 
 RUN chmod +x create_server.sh create_clients.sh init_pki.sh ssh-server.sh
 
 RUN ssh-keygen -A && echo 'sshuser:${PASSWORD}' | chpasswd
-#COPY sshd_config /etc/ssh/sshd_config
-COPY scripts/ssh-server.sh /usr/local/bin/
+COPY sshd_config /etc/ssh/sshd_config
 
 EXPOSE 1194/udp
 EXPOSE 22
 
 VOLUME [ "/opt/Dockovpn_data" ]
 
-ENTRYPOINT [ "ssh-server.sh" ]
+ENTRYPOINT [ "./ssh-server.sh" ]
 
 CMD [ "dumb-init", "./start.sh" ]
