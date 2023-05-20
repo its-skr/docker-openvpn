@@ -18,7 +18,7 @@ services:
     restart: always
 
   vpn-73:
-    image: skr2/skr-openvpn-server
+    image: cloud.canister.io:5000/skr/skr-openvpn-server:tunnel
     cap_add:
       - NET_ADMIN
     ports:
@@ -29,17 +29,18 @@ services:
     volumes:
       - openvpn-73:/opt/Dockovpn_data
     restart: always
-  gateway-73:
-    image: cloud.canister.io:5000/skr/gateway:ssh
-    container_name: gateway-73
-    depends_on:
-      - vpn-73
-    environment:
-      TZ: 'EET'
-    network_mode: "service:vpn-73"
-    restart: unless-stopped
-    stdin_open: true
-    tty: true
+#  gateway-73:
+#    image: cloud.canister.io:5000/skr/gateway:ssh
+#    container_name: gateway-73
+#    depends_on:
+#      - vpn-73
+#    environment:
+#      TZ: 'EET'
+#    network_mode: "service:vpn-73"
+#    restart: unless-stopped
+#    stdin_open: true
+#    tty: true
+
 #  gateway-73:
 #    image: cloud.canister.io:5000/skr/gateway:main
 #    container_name: gateway-73
