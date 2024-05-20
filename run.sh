@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 #docker stop openvpn-26
+export PORT=1193 && export REGION=61
 export PORT=1195 && export REGION=26
 export PORT=1196 && export REGION=73
 export PORT=1197 && export REGION=68
