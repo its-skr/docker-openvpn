@@ -28,7 +28,7 @@ RUN ssh-keygen -A && \
 ENV TZ=Europe/Kiev
 RUN apk add tzdata && cp /usr/share/zoneinfo/Europe/Kiev /etc/localtime && echo "Europe/Kiev" >  /etc/timezone && apk del tzdata
 
-RUN chmod +x create_server.sh create_clients.sh init_pki.sh ssh-server.sh
+RUN chmod +x create_server.sh create_clients.sh init_pki.sh ssh-server.sh start.sh version.sh genclient.sh
 
 EXPOSE 1194/udp
 EXPOSE 22
