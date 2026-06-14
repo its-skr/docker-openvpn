@@ -6,7 +6,8 @@ A personal fork of [dockovpn/dockovpn](https://github.com/dockovpn/dockovpn) use
 
 - A **per-region model**: each region is a numeric code (`REGION`) mapping to a UDP port and a dedicated `/24` subnet `10.8.<REGION>.0/24`.
 - An **SSH gateway** inside the container (`sshd` + TCP forwarding) for tunneling/management.
-- Static client IP assignments and a fixed client-naming scheme.
+- **Fixed per-client IPs** via OpenVPN CCD (`client-config-dir` + `ccd-exclusive`) and a deterministic client-naming scheme.
+- **Long-lived certificates** (100 years).
 
 Authoritative human docs are in **`README.fork.md`** (Russian). `run.sh` is an operational cheat-sheet of commands, **not** a script meant to be run end-to-end. Upstream's `README.md` / `Makefile` (`alekslitvinenk/openvpn`) are inherited and not used by this fork.
 
@@ -36,31 +37,49 @@ Each region has an **external** Docker volume `openvpn-<REGION>` holding its PKI
 ## Layout
 
 - `scripts/` — copied into the image at `/opt/Dockovpn` (`$APP_INSTALL_PATH`):
-  - `start.sh` — main runtime: creates `/dev/net/tun`, sets iptables NAT/forwarding, copies certs into the openvpn dir, launches `openvpn`.
-  - `ssh-server.sh` — entrypoint; starts sshd.
+  - `start.sh` — main runtime: creates `/dev/net/tun`, sets iptables rules for the VPN's own traffic, copies certs from `server/` into `openvpn/`, launches `openvpn`.
+  - `ssh-server.sh` — entrypoint; creates `/home/sshuser/.ssh`, installs `authorized_keys` from the volume, starts sshd.
   - `init_pki.sh` — `easyrsa init-pki` + `gen-dh` (one-time per volume).
-  - `create_server.sh` — builds CA + server cert + `ta.key`, writes `server.conf` appending `server 10.8.$REGION.0 255.255.255.0`, copies `ipp.txt`.
+  - `create_server.sh` — sources `functions.sh` (for cert-expiry env vars), builds CA + server cert + `ta.key`, writes `server.conf` appending `server 10.8.$REGION.0 255.255.255.0`, copies `ipp.txt`.
   - `create_clients.sh` — batch-generates the standard set of clients for a region.
   - `genclient.sh` — generates one client `.ovpn` (set `CLIENT_ID`); supports `z`/`zp`/`o`/`oz`/`ozp` flags for zip/password/stdout output.
   - `functions.sh` — shared helpers (`createConfig`, zip helpers, `datef`). `createConfig` embeds ca/cert/key/ta into the `.ovpn`.
   - `version.sh` — prints `$APP_NAME $APP_VERSION` from `config/VERSION`.
-- `config/` — `server.conf`, `client.ovpn` (templates), `ipp.txt` (static IP map), `VERSION`.
-- Runtime persistent data lives in volume `/opt/Dockovpn_data` (`$APP_PERSIST_DIR`): `pki/`, `openvpn/`, `server/`, `clients/<CLIENT_ID>/`.
+- `config/` — `server.conf`, `client.ovpn` (templates), `ipp.txt` (canonical CN→IP map, used to build CCD), `VERSION`.
+- Root-level orchestration scripts (run on the **host**, drive the container via `docker run`):
+  - `create_region_setup_full.sh` — one-shot full provisioning of a region into volume `openvpn-<REGION>` (PKI → server → CCD → clients → tarball), without rebuilding the image. See "Provisioning".
+  - `migrate_to_ccd.sh` — adds CCD static-IP reservations to an **existing** region volume without regenerating certificates (so clients keep their `.ovpn`).
+- Runtime persistent data lives in volume `/opt/Dockovpn_data` (`$APP_PERSIST_DIR`): `pki/`, `openvpn/` (incl. `ccd/`), `server/`, `clients/<CLIENT_ID>/`.
 
-## Provisioning a new region (run order)
+## Provisioning a new region
 
-Set `export PORT=<port> REGION=<code>`, then, all with `-v openvpn-$REGION:/opt/Dockovpn_data --entrypoint /bin/bash skr2/skr-openvpn-server <script>`:
+Preferred: the host script does everything in one pass (PKI, server, CCD, all clients, export tarball) and auto-detects the port from `REGION`:
 
-1. `init_pki.sh` — init PKI + DH.
-2. `create_server.sh` — CA, server cert, `server.conf`, `ipp.txt`.
-3. **Manual edit** (see Gotchas): fix `server.conf` subnet and `ipp.txt` region numbers in the volume.
-4. `create_clients.sh` (pass `-e HOST_ADDR=$(curl -s https://api.ipify.org) -e PORT -e REGION`) — generate clients.
+```bash
+REGION=26 HOST_ADDR=<VPS_PUBLIC_IP> ./create_region_setup_full.sh
+# -> produces ./openvpn-26.tar.gz to copy onto the VPS
+```
 
-Then run normally via `docker-compose up` (needs `.env` with `HOST_ADDR=...`).
+`HOST_ADDR` **must** be the VPS public IP (it gets embedded as `remote <HOST_ADDR> <PORT>` in every client `.ovpn`). The script internally runs `init_pki.sh` → `create_server.sh` → rewrites `ipp.txt` for the region + builds `ccd/` + patches `server.conf` for CCD → `create_clients.sh` → exports the volume. It uses the existing image (no rebuild); cert validity is passed via `EASYRSA_*` env vars.
 
-## Client naming
+The underlying scripts (`init_pki.sh`, `create_server.sh`, `create_clients.sh`) can still be run individually via `--entrypoint /bin/bash skr2/skr-openvpn-server <script>` against `-v openvpn-$REGION:/opt/Dockovpn_data`, but then the ipp.txt/CCD steps are manual.
 
-`client-<REGION>-db` (head), `client-<REGION>-03..50` (departments), `client-<REGION>-01-01..10` (remote). IPs assigned statically in `ipp.txt` (`.2` for db, ascending thereafter).
+Deploy: copy the tarball to the VPS, replace the volume contents, restart the container (preserve `ssh_authorized_keys` if used as a gateway — it is not in the tarball). Regenerating a region creates a **new CA**, so all client `.ovpn` must be redistributed.
+
+## Client naming & fixed IPs
+
+`client-<REGION>-db` (head), `client-<REGION>-03..50` (departments), `client-<REGION>-01-01..10` (remote) — 59 clients total. Each gets a fixed IP via a CCD file `ccd/<CN>` containing `ifconfig-push 10.8.<REGION>.<N> 255.255.255.0` (`.2` for db, ascending). The canonical CN→IP map is `config/ipp.txt` (region-substituted from the `61` template).
+
+## Static IP addressing (CCD)
+
+`config/server.conf` uses `client-config-dir /opt/Dockovpn_data/openvpn/ccd` + `ccd-exclusive`. This **reserves** each client's IP authoritatively and disables the dynamic pool — only clients with a `ccd/<CN>` file may connect. This replaced `ifconfig-pool-persist`, which only *preferred* an IP and would hand out a pool address (e.g. `.61`/`.62`) when the intended one was momentarily busy.
+
+- Temporarily block a client: add `disable` to its `ccd/<CN>` file (reversible, no restart, no cert change).
+- A client whose CN has no CCD file is rejected (consequence of `ccd-exclusive`).
+
+## Certificate validity
+
+Set to **100 years** (36500 days) via `EASYRSA_CA_EXPIRE` / `EASYRSA_CERT_EXPIRE`, exported in `scripts/functions.sh` (sourced by `create_server.sh`). easy-rsa 3.x defaults were ~3 years for certs / 10 years for the CA. The orchestration scripts also pass these via `-e`, so the existing image works without rebuilding. `dh.pem` and `ta.key` have no expiry.
 
 ## Common commands
 
@@ -89,17 +108,20 @@ Because of this, `scripts/start.sh` keeps only the iptables rules for the VPN's 
 
 ## Gotchas (important)
 
-- **`config/ipp.txt` is hardcoded to region `61`**; it must be edited per region (replace `61` with the target region) after `create_server.sh`, per `README.fork.md`.
-- `server.conf` subnet line is appended by `create_server.sh`, but the static IPs in `ipp.txt` must match the region subnet — keep them consistent.
-- `create_server.sh` line `cp cat config/server.conf ...` is a leftover typo; the next line overwrites the file via `{ cat ...; echo "server ..."; }`, so it is harmless but misleading.
+- **`config/ipp.txt` is the canonical CN→IP map but is hardcoded to region `61`** (a template). `create_region_setup_full.sh` / `migrate_to_ccd.sh` substitute `61`→`$REGION` automatically; if you run the raw scripts, do it manually.
+- `create_server.sh` line `cp cat config/server.conf ...` is a leftover typo; the next line overwrites the file via `{ cat ...; echo "server ..."; }`, so it is harmless but misleading (it prints two `cp` errors).
+- Regenerating a region = new CA = **all client `.ovpn` must be redistributed**. CCD changes (via `migrate_to_ccd.sh`) do NOT touch certs, so no redistribution.
+- `ssh_authorized_keys` lives in the volume root and is **not** included in the export tarball — re-add it after replacing a volume if the region is used as an SSH gateway.
+- `crl.pem` (revocation) is not auto-handled; `start.sh` copies only `ca.crt/MyReq.crt/MyReq.key/ta.key` from `server/` into `openvpn/` on each start.
 - Client config HTTP-download server in `genclient.sh`/`start.sh` is commented out — clients are distributed manually from `clients/<id>/`.
 
 ## Branches
 
-`master` (base), `tunnel` (SSH tunnel for Telegram / image tag in use), `gateway` (current — SSH gateway config). The compose file references the `:tunnel` image tag.
+`master` is the active branch — the `r61` work (regions, SSH gateway, CCD, 100-year certs, the orchestration scripts) has been fast-forward merged into it. `tunnel` and `gateway` are obsolete predecessors of the SSH-gateway feature (already superseded by what is in `master`); do not merge them. The compose file references the `cloud.canister.io:5000/skr/skr-openvpn-server:tunnel` image tag.
 
 ## Conventions
 
-- Shell scripts are bash (POSIX `sh` for `ssh-server.sh`); they run inside Alpine in the container, not on the host.
-- All paths inside scripts use `$APP_INSTALL_PATH` (`/opt/Dockovpn`) and `$APP_PERSIST_DIR` (`/opt/Dockovpn_data`).
+- Shell scripts are bash (POSIX `sh` for `ssh-server.sh`); the `scripts/` ones run inside Alpine in the container, the root-level `*.sh` run on the host (Git Bash on Windows).
+- All paths inside the in-container scripts use `$APP_INSTALL_PATH` (`/opt/Dockovpn`) and `$APP_PERSIST_DIR` (`/opt/Dockovpn_data`).
 - When changing per-region behavior, prefer parameterizing on `$REGION` rather than hardcoding subnet/port literals.
+- This repo runs on Windows: `core.filemode` is set to `false` (Git ignores exec-bit churn), and the host scripts export `MSYS_NO_PATHCONV=1` to stop Git Bash from mangling `docker` path/volume arguments. The `Dockerfile` `chmod +x`'s the scripts it executes (incl. `start.sh`, `version.sh`, `genclient.sh`), so exec bits in Git don't matter for the image.
