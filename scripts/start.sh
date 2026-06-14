@@ -15,15 +15,10 @@ iptables -A OUTPUT -o eth0 -p udp -m state --state ESTABLISHED --sport 1194 -j A
 
 # Allow traffic on the TUN interface.
 iptables -A INPUT -i tun0 -j ACCEPT
-iptables -A FORWARD -i tun0 -j ACCEPT
 iptables -A OUTPUT -o tun0 -j ACCEPT
 
-# Allow forwarding traffic only from the VPN.
-iptables -A FORWARD -i tun0 -o eth0 -s 10.8.26.0/24 -j ACCEPT
-iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
-
-iptables -t nat -A POSTROUTING -s 10.8.26.0/24 -o eth0 -j MASQUERADE
-
+# Client-to-client routing is handled internally by OpenVPN (see client-to-client
+# in server.conf), so no kernel forwarding or NAT is needed.
 
 cd $APP_PERSIST_DIR/server
 cp ca.crt MyReq.crt MyReq.key ta.key $APP_PERSIST_DIR/openvpn

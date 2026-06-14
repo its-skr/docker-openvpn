@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Pull in EASYRSA_CA_EXPIRE / EASYRSA_CERT_EXPIRE (100-year validity)
+source ./functions.sh
+
 # Copy FROM ./scripts/server/conf TO $APP_PERSIST_DIR/openvpn/server.conf in DockerFile
 mkdir $APP_PERSIST_DIR/openvpn
 cd ${APP_INSTALL_PATH}

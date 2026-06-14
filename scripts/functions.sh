@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Certificate validity: 100 years (easy-rsa defaults are ~3 years for certs,
+# 10 years for the CA). Applied to CA, server and client certificates.
+export EASYRSA_CA_EXPIRE=36500
+export EASYRSA_CERT_EXPIRE=36500
+
 function datef() {
     # Output:
     # Sat Jun  8 20:29:08 2019
