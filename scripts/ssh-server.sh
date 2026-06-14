@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Copy authorized_keys
+mkdir /home/sshuser/.ssh
 cp /opt/Dockovpn_data/ssh_authorized_keys /home/sshuser/.ssh/authorized_keys
 
 # Start the background application in the background
