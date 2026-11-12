@@ -46,9 +46,13 @@ Each region has an **external** Docker volume `openvpn-<REGION>` holding its PKI
   - `functions.sh` — shared helpers (`createConfig`, zip helpers, `datef`). `createConfig` embeds ca/cert/key/ta into the `.ovpn`.
   - `version.sh` — prints `$APP_NAME $APP_VERSION` from `config/VERSION`.
 - `config/` — `server.conf`, `client.ovpn` (templates), `ipp.txt` (canonical CN→IP map, used to build CCD), `VERSION`.
-- Root-level orchestration scripts (run on the **host**, drive the container via `docker run`):
+- `helpers/` — orchestration scripts (run on the **host** from the repo root as `./helpers/<name>.sh`; they drive the container via `docker run` and write tarballs to the current directory):
   - `create_region_setup_full.sh` — one-shot full provisioning of a region into volume `openvpn-<REGION>` (PKI → server → CCD → clients → tarball), without rebuilding the image. See "Provisioning".
   - `migrate_to_ccd.sh` — adds CCD static-IP reservations to an **existing** region volume without regenerating certificates (so clients keep their `.ovpn`).
+  - `add_reserve_remote.sh` — adds the reserve server `remote` + `server-poll-timeout 10` to existing client `.ovpn`.
+  - `renew_ca_100y.sh` — re-issues CA (same key/subject/serial) and server cert for 100 years in place; backs up the volume first. See "Renewing certificates".
+  - `renew_clients_100y.sh` — issues new 100-year client certs from the existing keys and builds `clients-new/<CN>/` (+ tarball) with updated `.ovpn` (both `remote` lines).
+  - `add_poll_timeout.ps1` — PowerShell: adds `server-poll-timeout 10` to every `.ovpn` in the current directory.
 - Runtime persistent data lives in volume `/opt/Dockovpn_data` (`$APP_PERSIST_DIR`): `pki/`, `openvpn/` (incl. `ccd/`), `server/`, `clients/<CLIENT_ID>/`.
 
 ## Provisioning a new region
@@ -56,7 +60,7 @@ Each region has an **external** Docker volume `openvpn-<REGION>` holding its PKI
 Preferred: the host script does everything in one pass (PKI, server, CCD, all clients, export tarball) and auto-detects the port from `REGION`:
 
 ```bash
-REGION=26 HOST_ADDR=<VPS_PUBLIC_IP> ./create_region_setup_full.sh
+REGION=26 HOST_ADDR=<VPS_PUBLIC_IP> ./helpers/create_region_setup_full.sh
 # -> produces ./openvpn-26.tar.gz to copy onto the VPS
 ```
 
@@ -65,6 +69,17 @@ REGION=26 HOST_ADDR=<VPS_PUBLIC_IP> ./create_region_setup_full.sh
 The underlying scripts (`init_pki.sh`, `create_server.sh`, `create_clients.sh`) can still be run individually via `--entrypoint /bin/bash skr2/skr-openvpn-server <script>` against `-v openvpn-$REGION:/opt/Dockovpn_data`, but then the ipp.txt/CCD steps are manual.
 
 Deploy: copy the tarball to the VPS, replace the volume contents, restart the container (preserve `ssh_authorized_keys` if used as a gateway — it is not in the tarball). Regenerating a region creates a **new CA**, so all client `.ovpn` must be redistributed.
+
+## Renewing certificates (without a new CA)
+
+Run on the host that owns the volume (VPS), per region, then `docker restart` the container and copy `ca.crt`/`MyReq.crt` to the reserve server:
+
+```bash
+REGION=61 ./helpers/renew_ca_100y.sh       # backup, new CA + server cert (same keys), verifies all issued certs
+REGION=61 ./helpers/renew_clients_100y.sh  # -> clients-new-61.tar.gz
+```
+
+The CA key is kept, so old `.ovpn` keep working until their own certs expire; new ones can be distributed gradually. `server/` is the source that `start.sh` copies into `openvpn/` on each start, so both are updated. See `structure.md` for the volume layout.
 
 ## Client naming & fixed IPs
 
@@ -105,6 +120,10 @@ docker ps && docker restart <container>
 The VPN is used for **client-to-client communication only** — clients reach each other inside `10.8.<REGION>.0/24`. **Internet egress through the VPN is NOT required.** Client-to-client routing is provided by the `client-to-client` directive in `config/server.conf`, handled internally by the OpenVPN daemon (it does not use kernel IP forwarding or netfilter).
 
 Because of this, `scripts/start.sh` keeps only the iptables rules for the VPN's own traffic (UDP 1194 in/out on `eth0`, accept on `tun0`). The FORWARD and NAT/MASQUERADE rules (internet egress) were removed — they were unused and were the only place that hardcoded `10.8.26.0/24`. Do not re-add forwarding/NAT unless internet egress becomes a requirement (which would also need `net.ipv4.ip_forward=1`).
+
+## Reserve server (failover)
+
+Primary `185.69.153.81` (`10.8.R.0/24`, production — don't restart casually), reserve `57.131.195.188` (`10.9.R.0/24`, same PKI copied over, run via `docker-compose.reserve.yaml`). Clients have two `remote` lines (primary first, added by `add_reserve_remote.sh`). `client-R-db` connects to **both** servers at once (two Windows service configs `-db-main`/`-db-reserve`), so clients always reach it at "own subnet + `.2`" — no inter-server routing exists. The `failback` container on the reserve (`scripts/failback.sh`, bind-mounted, `FAILBACK_ENABLED=0` disables) kicks reserve clients (except db) via the management interface (`management 0.0.0.0 7505`, reserve server.conf only) once the primary's SSH port `22R` is up for `FAILBACK_STABLE_MIN` minutes. Details in `README.fork.md`.
 
 ## Gotchas (important)
 

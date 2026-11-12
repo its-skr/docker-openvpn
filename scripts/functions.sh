@@ -37,6 +37,12 @@ function createConfig() {
 
     echo -e "\nremote $HOST_ADDR $PORT" >> "$CLIENT_PATH/$CLIENT_ID.ovpn"
 
+    # Reserve server as failover (primary is tried first, no remote-random)
+    if [ -n "$RESERVE_ADDR" ]
+    then
+        echo -e "remote $RESERVE_ADDR $PORT\nserver-poll-timeout 10" >> "$CLIENT_PATH/$CLIENT_ID.ovpn"
+    fi
+
     # Embed client authentication files into config file
     cat <(echo -e '<ca>') \
         "$CLIENT_PATH/ca.crt" <(echo -e '</ca>\n<cert>') \

@@ -13,8 +13,8 @@
 # Run against the named volume (locally or on the VPS), then restart the container.
 #
 # Usage:
-#   REGION=56 ./migrate_to_ccd.sh
-#   REGION=61 IMAGE=cloud.canister.io:5000/skr/skr-openvpn-server:tunnel ./migrate_to_ccd.sh
+#   REGION=56 ./helpers/migrate_to_ccd.sh
+#   REGION=61 IMAGE=cloud.canister.io:5000/skr/skr-openvpn-server:tunnel ./helpers/migrate_to_ccd.sh
 #
 # After it finishes:
 #   docker-compose restart vpn-<REGION>
@@ -26,7 +26,7 @@
 
 set -euo pipefail
 
-: "${REGION:?Set REGION, e.g. REGION=56 ./migrate_to_ccd.sh}"
+: "${REGION:?Set REGION, e.g. REGION=56 ./helpers/migrate_to_ccd.sh}"
 IMAGE="${IMAGE:-skr2/skr-openvpn-server}"
 VOLUME="openvpn-$REGION"
 

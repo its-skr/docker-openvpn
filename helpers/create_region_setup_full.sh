@@ -10,10 +10,11 @@
 # The result is a tarball ./openvpn-<REGION>.tar.gz ready to copy to the VPS.
 #
 # Usage (Git Bash):
-#   REGION=26 HOST_ADDR=<VPS_PUBLIC_IP> ./create_region_setup_full.sh
+#   REGION=26 HOST_ADDR=<VPS_PUBLIC_IP> ./helpers/create_region_setup_full.sh
 #
 # Optional overrides (env vars):
 #   PORT                external UDP port (auto-detected for known regions)
+#   RESERVE_ADDR        reserve server IP, added as 2nd `remote` (needs rebuilt image)
 #   IMAGE               docker image to run (default: skr2/skr-openvpn-server)
 #   EASYRSA_CA_EXPIRE   CA validity in days   (default: 36500)
 #   EASYRSA_CERT_EXPIRE cert validity in days (default: 36500)
@@ -22,7 +23,7 @@
 set -euo pipefail
 
 # ---- Required input --------------------------------------------------------
-: "${REGION:?Set REGION, e.g. REGION=26 HOST_ADDR=1.2.3.4 ./create_region_setup_full.sh}"
+: "${REGION:?Set REGION, e.g. REGION=26 HOST_ADDR=1.2.3.4 ./helpers/create_region_setup_full.sh}"
 : "${HOST_ADDR:?Set HOST_ADDR to the VPS public IP (gets embedded into client .ovpn)}"
 
 # ---- Defaults --------------------------------------------------------------
@@ -65,6 +66,7 @@ docker_run() {
         -e REGION="$REGION" \
         -e PORT="$PORT" \
         -e HOST_ADDR="$HOST_ADDR" \
+        -e RESERVE_ADDR="${RESERVE_ADDR:-}" \
         -e EASYRSA_CA_EXPIRE="$EASYRSA_CA_EXPIRE" \
         -e EASYRSA_CERT_EXPIRE="$EASYRSA_CERT_EXPIRE" \
         "$IMAGE" "$@"
